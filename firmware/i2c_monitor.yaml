@@ -1,0 +1,7 @@
+interval:
+  - interval: 60s
+    then:
+      - lambda: |-
+          if (!id(bh1750_sensor).has_state()) {
+            ESP_LOGW("i2c", "BH1750 sensor missing or not responding.");
+          }

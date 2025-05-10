@@ -1,0 +1,5 @@
+text_sensor:
+  - platform: version
+    name: "KinderLight ESPHome Version"
+    icon: mdi:information
+    hide_timestamp: true
