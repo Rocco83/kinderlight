@@ -1,0 +1,17 @@
+# KinderLight RGB - Front PCB - Bill of Materials
+
+| Qty | Designator | Part Description                     | Type      | Notes                  |
+|-----|------------|--------------------------------------|-----------|-------------------------|
+| 1x  | LED1       | RGB LED, common cathode, 5mm         | Through-Hole | Red, Green, Blue channels |
+| 1x  | U1         | BH1750 Light Sensor Module (Breakout) | I2C Device | Address 0x23 |
+| 1x  | R1         | 150Ω Resistor, 1/4W                  | Through-Hole | Red channel current limiter |
+| 1x  | R2         | 100Ω Resistor, 1/4W                  | Through-Hole | Green channel current limiter |
+| 1x  | R3         | 100Ω Resistor, 1/4W                  | Through-Hole | Blue channel current limiter |
+| 3x  | Q1, Q2, Q3 | MOSFET N-channel IRLML6344 (SOT-23)  | SMD        | One per each RGB channel |
+| 3x  | R4, R5, R6 | 10kΩ Resistor, 1/4W                  | Through-Hole | Gate pull-down resistors |
+| 1x  | J1         | JST-SH 7P 1.0mm Connector            | Connector | RGB + I2C main bus |
+| 1x  | J2         | JST-SH 5P 1.0mm Connector            | Connector | UART serial/debug connector |
+| 1x  | TC         | Tag-Connect footprint TC2030         | Debug pad | Optional direct programming/debugging |
+
+# Optional:
+# - Add mechanical support (3D printed snap-in) for mounting inside Vimar 14041 plate.

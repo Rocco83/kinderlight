@@ -1,0 +1,32 @@
+alias: Turn on KinderLight when dark
+description: >
+  Automatically turns on the KinderLight RGB when the ambient light sensor detects darkness.
+trigger:
+  - platform: state
+    entity_id: binary_sensor.kinderlight_is_dark
+    to: "on"
+condition: []
+action:
+  - service: light.turn_on
+    target:
+      entity_id: light.kinderlight_rgb
+    data:
+      brightness_pct: 40
+      rgb_color: [255, 200, 150]  # Warm white color
+mode: single
+
+---
+
+alias: Turn off KinderLight when light
+description: >
+  Automatically turns off the KinderLight RGB when ambient light is sufficient.
+trigger:
+  - platform: state
+    entity_id: binary_sensor.kinderlight_is_dark
+    to: "off"
+condition: []
+action:
+  - service: light.turn_off
+    target:
+      entity_id: light.kinderlight_rgb
+mode: single

@@ -1,0 +1,80 @@
+esphome:
+  name: kinderlight_rgb
+  friendly_name: KinderLight RGB
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging via UART
+logger:
+
+# Enable OTA updates
+ota:
+
+# Web server for local diagnostics
+web_server:
+  port: 80
+
+# Wi-Fi configuration
+wifi:
+  ssid: "YOUR_WIFI_SSID"
+  password: "YOUR_WIFI_PASSWORD"
+  ap:
+    ssid: "KinderLight RGB Fallback"
+    password: "fallback_password"
+
+captive_portal:
+
+# I2C Bus for BH1750 sensor
+i2c:
+  sda: GPIO8
+  scl: GPIO9
+  scan: true
+  id: bus_a
+
+# Ambient light sensor
+sensor:
+  - platform: bh1750
+    name: "KinderLight Ambient Light"
+    id: ambient_light
+    address: 0x23
+    update_interval: 30s
+
+# PWM outputs for RGB LED
+output:
+  - platform: ledc
+    id: pwm_red
+    pin: GPIO4
+    frequency: 1000Hz
+  - platform: ledc
+    id: pwm_green
+    pin: GPIO5
+    frequency: 1000Hz
+  - platform: ledc
+    id: pwm_blue
+    pin: GPIO6
+    frequency: 1000Hz
+
+# RGB Light entity
+light:
+  - platform: rgb
+    name: "KinderLight RGB"
+    red: pwm_red
+    green: pwm_green
+    blue: pwm_blue
+    id: kinderlight_rgb_light
+    restore_mode: ALWAYS_ON
+
+# Binary sensor to detect darkness
+binary_sensor:
+  - platform: template
+    name: "KinderLight Is Dark"
+    lambda: |-
+      if (id(ambient_light).state < 50) {
+        return true;
+      } else {
+        return false;
+      }
+    device_class: light

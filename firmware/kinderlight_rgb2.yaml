@@ -1,0 +1,72 @@
+esphome:
+  name: kinderlight
+  friendly_name: KinderLight RGB Nightlight
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "YOUR_ENCRYPTION_KEY"
+
+ota:
+  password: "YOUR_OTA_PASSWORD"
+
+wifi:
+  ssid: "YOUR_WIFI_SSID"
+  password: "YOUR_WIFI_PASSWORD"
+  ap:
+    ssid: "KinderLight Fallback"
+    password: "fallback_password"
+
+captive_portal:
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+# Light configuration
+light:
+  - platform: rgb
+    name: "KinderLight RGB"
+    red: output_red
+    green: output_green
+    blue: output_blue
+    effects:
+      - random:
+      - strobe:
+      - flicker:
+
+output:
+  - platform: ledc
+    pin: GPIO14
+    id: output_red
+  - platform: ledc
+    pin: GPIO27
+    id: output_green
+  - platform: ledc
+    pin: GPIO26
+    id: output_blue
+
+# Luminosity sensor
+sensor:
+  - platform: bh1750
+    name: "Ambient Light Lux"
+    address: 0x23
+    update_interval: 30s
+
+# (Optional) Voltage input monitoring
+# If you connect battery or input voltage monitoring
+# Uncomment below if needed
+#  - platform: adc
+#    pin: GPIO36
+#    name: "Input Voltage"
+#    attenuation: 11db
+#    update_interval: 30s

@@ -1,0 +1,14 @@
+# KinderLight RGB - Rear PCB - Bill of Materials
+
+| Qty | Designator | Part Description                     | Type        | Notes                            |
+|-----|------------|--------------------------------------|-------------|----------------------------------|
+| 1x  | U2         | ESP32-C3 Mini DevKit Board           | Module      | Main MCU, socketed or header-mounted |
+| 1x  | DC1        | Buck Converter MP1584EN (12V → 5V)   | Module      | Power regulator module |
+| 1x  | J3         | JST-SH 5P 1.0mm Connector             | Connector   | Serial/UART interface (Front to Rear) |
+| 1x  | J4         | JST-SH 5P 1.0mm Connector             | Connector   | Connection to ESP32-C3 |
+| 1x  | BAT_CONN   | 2P Battery Connector (Optional)       | Connector   | For optional backup battery |
+| 1x  | TC2        | Tag-Connect TC2030 footprint          | Debug pad   | For programming/debugging |
+
+# Optional:
+# - Small decoupling capacitor (100uF electrolytic) on 5V line.
+# - Fuse (self-resettable 500mA) on 12V input if needed for safety.
