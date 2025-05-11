@@ -10,9 +10,9 @@
 
 | Function        | GPIO |
 |-----------------|------|
-| PWM Red (LED)   | GPIO4 |
-| PWM Green (LED) | GPIO5 |
-| PWM Blue (LED)  | GPIO6 |
+| PWM Red (LED)   | GPIO1 |
+| PWM Green (LED) | GPIO2 |
+| PWM Blue (LED)  | GPIO3 |
 | SDA (I2C Data)  | GPIO8 |
 | SCL (I2C Clock) | GPIO9 |
 

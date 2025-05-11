@@ -7,7 +7,7 @@
 *.swo
 *.swn
 
-# Sistema
+# OS
 .DS_Store
 Thumbs.db
 ehthumbs.db
@@ -29,13 +29,16 @@ ehthumbs.db
 /build/
 /dist/
 
-# Altri temporanei
+# Other temporary files
 *.zip
 *.tar.gz
 *.7z
 
-# Altri file non da versionare
+# standard files to not version
 *.log
 *.aux
 *.out
 *.toc
+
+# files with passwords
+secrets.yaml
