@@ -41,4 +41,5 @@ ehthumbs.db
 *.toc
 
 # files with passwords
+# secrets is also in the firmware directory
 secrets.yaml

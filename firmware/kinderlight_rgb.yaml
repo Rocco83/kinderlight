@@ -1,50 +1,83 @@
 esphome:
-  name: kinderlight_rgb
-  friendly_name: KinderLight RGB
+  # this is the hostname, the mac_suffix will differentiate the device
+  name: kinderlight-rgb
+  friendly_name: KinderLight-RGB
+  name_add_mac_suffix: true
 
 esp32:
-  board: esp32dev
-  framework:
-    type: arduino
+  board: esp32-c6-devkitm-1
+  #framework:
+  #  type: arduino
 
 # Enable logging via UART
 logger:
 
 # default HA integration, OTA updater and backup http web portal
 api:
+  # TODO increase the security
   # password: !secret device_password
-#  encryption:
-#    key: "YOUR_ENCRYPTION_KEY"
+  #encryption:
+  #  key: "YOUR_ENCRYPTION_KEY"
+  # 5m default delay. if no home assistant, then force reboot
+  reboot_timeout: 0s
+
 ota:
+  - platform: esphome
+  # TODO increase the security
   # password: !secret device_password
+  # change to https://esphome.io/components/ota/http_request ?
+
 wifi:
-  # Read the wifi/pass from secrets.yaml:
-  # wifi_ssid: "My Wifi XX"
-  # wifi_password: "XXXXXXX"
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  # Read the wifi/pass from secrets.yaml and support 2 SSID
+  networks:
+  - ssid: !secret wifi_1_ssid
+    password: !secret wifi_1_password
+  - ssid: !secret wifi_2_ssid
+    password: !secret wifi_2_password
 
 # Web server for local diagnostics
 web_server:
   port: 80
-
-# https://esphome.io/components/captive_portal.html
-#captive_portal:
+  version: 3
 
 # I2C Bus for BH1750 sensor
 i2c:
-  sda: GPIO8
-  scl: GPIO9
-  scan: true
-  id: bus_a
+  sda: GPIO14 # 8th pin right
+  scl: GPIO15 # 7th pin right
+  #scan: true #
+  id: i2c_bus_a
 
-# Ambient light sensor
 sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s # Check every minute
+    entity_category: "diagnostic"
+    filters:
+      - sliding_window_moving_average: # Smooth out data to prevent false triggers
+          window_size: 3
+          send_every: 1
+    on_value:
+      then:
+        - if:
+            condition:
+              and:
+                - wifi.connected:
+                - lambda: 'return x < -80;' # Trigger if signal is worse than -80dB
+            then:
+              - logger.log: "WiFi Signal is below -80dB. Forcing scan for better BSSID..."
+              # There is no "roam" command, so we toggle WiFi to force a new scan/connect
+              - wifi.disable:
+              - delay: 2s
+              - wifi.enable:
+
+  # Ambient light sensor
   - platform: bh1750
     name: "KinderLight Ambient Light"
     id: ambient_light
     address: 0x23
-    update_interval: 30s
+    update_interval: 10s
+    entity_category: "diagnostic"
 
 # PWM outputs for RGB LED
 output:
@@ -65,26 +98,93 @@ output:
 light:
   - platform: rgb
     name: "KinderLight RGB"
+    icon: "mdi:led-outline"
     red: pwm_red
     green: pwm_green
     blue: pwm_blue
     id: kinderlight_rgb_light
+    initial_state: # This state will be applied when the state is not restored based on restore_mode (below).
+      state: on
     restore_mode: RESTORE_DEFAULT_OFF
     default_transition_length: 1s
     effects:
       - strobe: # to identify the object
-    effects:
       - pulse:
           name: "Night Fade"
           transition_length: 2s
           update_interval: 3s
           min_brightness: 10%
           max_brightness: 70%
+  - platform: esp32_rmt_led_strip
+    rgb_order: GBR  # Or GRB, depending on your LED
+    pin: GPIO8
+    num_leds: 1
+    chipset: WS2812
+    id: status_led
+    name: "Embedded RGB Light"
+    icon: "mdi:led-outline"
+    default_transition_length: 0.25s
+    effects:
+      - random:
+      - flicker:
+      - addressable_rainbow:
 
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "KinderLight IP Address"
+number:
+  - platform: template
+    name: "Set Red %"
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    on_value:
+      then:
+        - light.turn_on:
+            id: kinderlight_rgb_light
+            # Convert 0-100 to 0.0-1.0
+            red: !lambda 'return x / 100.0;'
+            # We must preserve the other current colors
+            green: !lambda 'return id(kinderlight_rgb_light).remote_values.get_green();'
+            blue: !lambda 'return id(kinderlight_rgb_light).remote_values.get_blue();'
+
+  - platform: template
+    name: "Set Green %"
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    on_value:
+      then:
+        - light.turn_on:
+            id: kinderlight_rgb_light
+            green: !lambda 'return x / 100.0;'
+            red: !lambda 'return id(kinderlight_rgb_light).remote_values.get_red();'
+            blue: !lambda 'return id(kinderlight_rgb_light).remote_values.get_blue();'
+
+  - platform: template
+    name: "Set Blue %"
+    min_value: 0
+    max_value: 100
+    step: 1
+    optimistic: true
+    on_value:
+      then:
+        - light.turn_on:
+            id: kinderlight_rgb_light
+            blue: !lambda 'return x / 100.0;'
+            red: !lambda 'return id(kinderlight_rgb_light).remote_values.get_red();'
+            green: !lambda 'return id(kinderlight_rgb_light).remote_values.get_green();'
+
+#number:
+  - platform: template
+    name: "Darkness Threshold"
+    id: dark_threshold
+    optimistic: true
+    restore_value: true         # save in flash and restore on reboot
+    min_value: 0
+    max_value: 100
+    step: 1
+    unit_of_measurement: "lx"
+    initial_value: 50           # default on first boot
 
 # Binary sensor to detect darkness
 binary_sensor:
@@ -92,25 +192,57 @@ binary_sensor:
     name: "KinderLight Is Dark"
     id: is_dark
     lambda: |-
-      if (id(ambient_light).state < 50) {
-        return true;
-      } else {
-        return false;
-      }
+      // compare measured lux to the user-set threshold
+      // lower = true, higher = false
+      return id(ambient_light).state < id(dark_threshold).state;
     device_class: light
 
+
 interval:
-  - interval: 10s
+  - interval: 60s
+    then:
+      - lambda: |-
+          // Log BH1750 I2C status
+          if (!id(ambient_light).has_state()) {
+            ESP_LOGW("i2c", "BH1750 sensor missing or not responding.");
+          }
+  # target value: 3s?
+  - interval: 1s
     then:
       - if:
+          #
           condition:
-            binary_sensor.is_on: is_dark
+            and:
+              # is dark
+              - binary_sensor.is_on: is_dark
+              # no override
+              - switch.is_off: manual_override
+              # currently off
+              - light.is_off: kinderlight_rgb_light
           then:
             - light.turn_on:
                 id: kinderlight_rgb_light
-                brightness: 64
+                transition_length: 1s
           else:
-            - light.turn_off: kinderlight_rgb_light
+            - if:
+                # no override, not dark
+                condition:
+                  and:
+                    - binary_sensor.is_off: is_dark
+                    - switch.is_off: manual_override
+                    # currently on
+                    - light.is_on: kinderlight_rgb_light
+                then:
+                  - light.turn_off:
+                      id: kinderlight_rgb_light
+                      transition_length: 1s
+
+switch:
+  - platform: template
+    name: "KinderLight Manual Override"
+    id: manual_override
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
 
 # (Optional) Voltage input monitoring
 # If you connect battery or input voltage monitoring
@@ -119,15 +251,38 @@ interval:
 #    pin: GPIO36
 #    name: "Input Voltage"
 #    attenuation: 11db
-interval:
-  - interval: 60s
-    then:
-      - lambda: |-
-          if (!id(bh1750_sensor).has_state()) {
-            ESP_LOGW("i2c", "BH1750 sensor missing or not responding.");
-          }
+
 text_sensor:
   - platform: version
     name: "KinderLight ESPHome Version"
     icon: mdi:information
     hide_timestamp: true
+  - platform: wifi_info
+    ip_address:
+      name: "KinderLight IP Address"
+    mac_address:
+      name: "KinderLight MAC Address"
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: "Europe/Rome"
+    # No servers defined = use DHCP provided servers
+    on_time:
+      - hours: 21
+        minutes: 0
+        then:
+          - light.control:
+              id: kinderlight_rgb_light
+              red: 100%
+              green: 0%
+              blue: 0%
+    # At 7:00 AM - Set internal state to Warm White/Amber
+      - hours: 7
+        minutes: 0
+        then:
+          - light.control:
+              id: kinderlight_rgb_light
+              red: 100%
+              green: 80%
+              blue: 40%
