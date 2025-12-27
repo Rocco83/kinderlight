@@ -4,32 +4,43 @@
 $fn=80; // Smooth curves
 
 // Main parameters
-width = 22.5;
-height = 45;
+width = 19;
+height = 40;
 thickness = 3;
 
+rib_offset    = 2.5;   // distance of rib from inner wall (mm)
+rib_width     = 0.5;   // rib actual width   (mm)
+rib_length    = 8;     // rib actual length  (mm)
+
+clearance     = 0.2;   // safety gap around each rib (mm)
+///////////////////////////////////////////////////////////////////
+
+slot_width  = rib_width  + clearance * 2;  // notch width  (mm)
+slot_depth  = rib_offset - clearance;      // how deep to cut inwards
+slot_length = rib_length + clearance * 2;  // notch length (mm)
+
 // LED and Sensor positions
-led_pos_y = -4;
-sensor_pos_y = 8;
+led_pos_y = -9;
+sensor_pos_y = 5;
 hole_diameter_led = 6;
-hole_diameter_sensor = 6;
+hole_diameter_sensor = 3;
 
 // BH1750 main tower
 tower_height = 8;
-tower_outer_diameter = 12;
-tower_inner_diameter = 8;
+tower_outer_diameter = 4;
+tower_inner_diameter = 3;
 
 // Mini-towers M2 screws
 m2_tower_outer_diameter = 5;
-m2_tower_inner_diameter = 2.2;
-m2_tower_offset_x = 7;
-m2_tower_offset_y = sensor_pos_y;
+m2_tower_inner_diameter = 2.2; // m2, hole 3mm
+m2_tower_offset_x = 4.5;
+m2_tower_offset_y = sensor_pos_y + 4; // check
 
 // Tag-Connect 6+2
 tag_pitch = 1.27;
 tag_hole_diameter = 1.5;
 tag_anchor_diameter = 2.0;
-tag_pos_y = -18;
+tag_pos_y = -16;
 
 // Snap simple hook shape
 snap_base = 3;
@@ -50,6 +61,22 @@ module snapin_plate() {
         translate([0, sensor_pos_y, -2])
             cylinder(h=thickness + 4, d=hole_diameter_sensor);
 
+
+    // Four vertical notches on long sides
+    for (side = [-1, 1]) {                        // left/right
+      x_pos = side * ( width/2 - slot_depth );
+      for (edge = [-1, 1]) {                      // bottom/top
+        y_pos = edge * ( height/2 - slot_length/2 );
+        translate([ x_pos, y_pos, -2 ])           // z=-1 to ensure full cut
+          cube([ slot_depth, slot_length, thickness + 2 ]);
+
+      }
+    }
+
+
+
+// tag connect must be rotated
+/*
         // Tag-Connect signal pins
         for (i = [-1,0,1]) {
             for (j = [0,1]) {
@@ -64,6 +91,7 @@ module snapin_plate() {
 
         translate([0, tag_pos_y + tag_pitch*2.5, -2])
             cylinder(h=thickness + 4, d=tag_anchor_diameter);
+            */
     }
 }
 
@@ -109,12 +137,13 @@ module snap_hook_right() {
             polygon(points=[[0,0],[-snap_base,0],[0,snap_height]]);
 }
 
+
 // Final assembly
 union() {
     snapin_plate();
     tower();
     m2_tower_left();
     m2_tower_right();
-    snap_hook_left();
-    snap_hook_right();
+    //snap_hook_left();
+    //snap_hook_right();
 }
