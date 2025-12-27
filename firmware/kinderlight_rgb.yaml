@@ -47,6 +47,21 @@ i2c:
   #scan: true #
   id: i2c_bus_a
 
+button:
+  - platform: template
+    name: "Clear Stored States"
+    id: clear_states_button
+    icon: "mdi:database-remove"
+    entity_category: "config"
+    on_press:
+      then:
+        - lambda: |-
+            global_preferences->reset();
+            ESP_LOGI("custom", "NVM Memory Cleared! Restarting...");
+        - delay: 1s
+        # This is the correct way to reboot via code
+        - lambda: 'App.safe_reboot();'
+
 sensor:
   - platform: wifi_signal
     name: "WiFi Signal dB"
@@ -263,26 +278,59 @@ text_sensor:
     mac_address:
       name: "KinderLight MAC Address"
 
+  - platform: template
+    name: "RGB Light Debug"
+    id: rgb_debug_info
+    icon: "mdi:bug"
+    entity_category: "diagnostic"
+    update_interval: 5s
+    lambda: |-
+      char buffer[120];
+
+      // 1. Get the current active values from the Light Component
+      // "current_values" shows the live state (even during fades)
+      auto values = id(kinderlight_rgb_light).current_values;
+
+      std::string state = values.is_on() ? "ON" : "OFF";
+      float bri = values.get_brightness();
+
+      // 2. Get the Color Channels (0.0 to 1.0)
+      float r_color = values.get_red();
+      float g_color = values.get_green();
+      float b_color = values.get_blue();
+
+      // 3. Calculate the actual PWM (Duty Cycle)
+      // The pin receives: Color * Brightness
+      float r_pwm = r_color * bri;
+      float g_pwm = g_color * bri;
+      float b_pwm = b_color * bri;
+
+      // 4. Format into a readable string
+      sprintf(buffer, "State: %s | Bri: %.0f%% | PWM-> R:%.0f%% G:%.0f%% B:%.0f%%", 
+              state.c_str(), (bri * 100.0), (r_pwm * 100.0), (g_pwm * 100.0), (b_pwm * 100.0));
+
+      return {buffer};
+
 time:
   - platform: sntp
     id: sntp_time
     timezone: "Europe/Rome"
     # No servers defined = use DHCP provided servers
-    on_time:
-      - hours: 21
-        minutes: 0
-        then:
-          - light.control:
-              id: kinderlight_rgb_light
-              red: 100%
-              green: 0%
-              blue: 0%
-    # At 7:00 AM - Set internal state to Warm White/Amber
-      - hours: 7
-        minutes: 0
-        then:
-          - light.control:
-              id: kinderlight_rgb_light
-              red: 100%
-              green: 80%
-              blue: 40%
+#    on_time:
+#      - hours: 21
+#        minutes: 0
+#        then:
+#          - light.control:
+#              id: kinderlight_rgb_light
+#              red: 100%
+#              green: 0%
+#              blue: 0%
+#    # At 7:00 AM - Set internal state to Warm White/Amber
+#      - hours: 7
+#        minutes: 0
+#        then:
+#          - light.control:
+#              id: kinderlight_rgb_light
+#              red: 100%
+#              green: 80%
+#              blue: 40%
