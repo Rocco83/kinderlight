@@ -91,7 +91,9 @@ sensor:
     name: "KinderLight Ambient Light"
     id: ambient_light
     address: 0x23
-    update_interval: 10s
+    # target?
+    #update_interval: 10s
+    update_interval: 1s
     entity_category: "diagnostic"
 
 # PWM outputs for RGB LED
@@ -214,7 +216,7 @@ binary_sensor:
 
 
 interval:
-  - interval: 60s
+  - interval: 5s
     then:
       - lambda: |-
           // Log BH1750 I2C status
