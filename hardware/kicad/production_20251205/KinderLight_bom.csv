@@ -1,0 +1,11 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+J2,PinHeader_1x08_P2.00mm_Vertical,1,VOUT,
+J3,PinSocket_1x10_P2.54mm_Vertical,1,ESP32C6 Left,
+J4,PinSocket_1x10_P2.54mm_Vertical,1,ESP32C6 Right,
+J5,PinHeader_1x08_P2.00mm_Vertical,1,VIN,
+J7,PinSocket_1x04_P2.54mm_Vertical,1,I2C BH1750,
+J8,PinSocket_1x04_P2.54mm_Vertical,1,LED,
+J9,"TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",1,+12VCC,
+"Q1, Q2, Q3",SOT-23,3,AO3400A,C20917
+"R1, R2, R3",0805,3,220R,C17557
+"R4, R5, R6",0805,3,150R,C17471
