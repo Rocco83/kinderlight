@@ -69,11 +69,6 @@ tag_hole_diameter = 1.5;
 tag_anchor_diameter = 2.0;
 tag_pos_y = -16;
 
-// Snap simple hook shape
-snap_base = 3;
-snap_height = 6;
-snap_thickness = 1.8;
-snap_offset_y = 12;
 
 // Snap-in base
 module snapin_plate() {
@@ -328,19 +323,6 @@ module m2_tower_right() {
     }
 }
 
-// Snap hooks (simple inclined plane)
-module snap_hook_left() {
-    translate([-(width/2)-0.1, snap_offset_y, 0])
-        linear_extrude(height=thickness)
-            polygon(points=[[0,0],[snap_base,0],[0,snap_height]]);
-}
-
-module snap_hook_right() {
-    translate([(width/2)+0.1, -snap_offset_y, 0])
-        linear_extrude(height=thickness)
-            polygon(points=[[0,0],[-snap_base,0],[0,snap_height]]);
-}
-
 module screwdriver_hook() {
     hook_height=7;
     screwdriver_hole=4;
@@ -423,8 +405,6 @@ union() {
     tower();
     m2_tower_left();
     m2_tower_right();
-    //snap_hook_left();
-    //snap_hook_right();
 //    screwdriver_hook();
     //screwdriver_hook_simple();
 }
