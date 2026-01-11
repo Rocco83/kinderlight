@@ -25,8 +25,11 @@ abbondanza    = 4;
 // final width calibro 12,45 (loose) 12,63 (forcing the plastic)
 // the lower, the smaller
 // subtract from width
-// 19.3-(3.4*2)=12.5
-slot_depth  = 3.4; // La tua "x" (quanto entra verso il centro dal bordo esterno)
+
+central_module_width=12.5;
+
+// 19.3-(3.4*2)=12.5 al contrario: (19.3-central_module_width)/2
+slot_depth  = (width-central_module_width)/2; // La tua "x" (quanto entra verso il centro dal bordo esterno)
 slot_length = 9.5; // La tua "y" (lunghezza del taglio lungo il bordo)
 
 // LED and Sensor positions
