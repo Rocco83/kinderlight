@@ -1,13 +1,13 @@
 // KinderLight RGB - Snap-in for Vimar 14041 with BH1750 Tower, M2 Towers, and True Snap Hooks
 // License: GPL-3.0
 
-$fn=20; // rendering test
-//$fn=200; // Smooth curves
+//$fn=20; // rendering test
+$fn=200; // Smooth curves
 
 // Main parameters
 // WARNING: PLANA 14041 changed over the time. ensure to have "new" modules
 // questo lato non deve premere, spancia. era 19.30
-width = 19.25; // calibro 19,26 (loose) 19,51 (forcing the plastic)
+width = 19.27; // calibro 19,26 (loose) 19,51 (forcing the plastic)
 // calibro dice 40.57 OK, 40.60 fa troppa forza?
 height = 40.58; // calibro 40,54 (loose) 40,78 (forcing the plastic)
 thickness = 3;
@@ -53,7 +53,7 @@ sensor_pos_y = 4; // measured, posizione del *sensore* rispetto ad y=0 (centro d
 // BH1750 main tower
 // distance between sensor and towers: 4.5mm (ortogonale)
 // distance between tower centers: 9mm 
-tower_height = 1.5; // 1mm si intravede il foro della vite corta. 2mm ancora da testare come luminosita`
+tower_height = 3; // 1mm si intravede il foro della vite corta. 2mm ancora da testare come luminosita` -- 2mm e 1mm testati, vedi chatgpt
 tower_outer_diameter = 9; // diametro massimo altrimenti tocca gli altri componenti
 //tower_inner_diameter = tower_outer_diameter-2; // which is also sensor diameter // was 4.00 mm in the version from tresline 3d
 tower_inner_diameter = 7; // which is also sensor diameter // was 4.00 mm in the version from tresline 3d
@@ -65,13 +65,6 @@ m2_tower_outer_diameter = 5;
 m2_tower_inner_diameter = 1.7; // 2.0mm filetto esterno, 1.7mm filetto interno // era 1.8, mario era OK, ma tresline no // era 1.5 filetto interno "non stampato bene"
 m2_tower_offset_x = 4.5;
 m2_tower_offset_y = sensor_pos_y + 4.5; // verificato con calibro
-
-// Tag-Connect 6+2
-tag_pitch = 1.27;
-tag_hole_diameter = 1.5;
-tag_anchor_diameter = 2.0;
-tag_pos_y = -16;
-
 
 // Snap-in base
 module snapin_plate() {
@@ -166,30 +159,6 @@ module snapin_plate() {
     }
 
     
-    
-    
-
-
-
-
-
-// tag connect must be rotated
-/*
-        // Tag-Connect signal pins
-        for (i = [-1,0,1]) {
-            for (j = [0,1]) {
-                translate([i*tag_pitch, tag_pos_y+j*tag_pitch, -2])
-                    cylinder(h=thickness + 4, d=tag_hole_diameter);
-            }
-        }
-
-        // Tag-Connect anchors
-        translate([0, tag_pos_y - tag_pitch*1.5, -2])
-            cylinder(h=thickness + 4, d=tag_anchor_diameter);
-
-        translate([0, tag_pos_y + tag_pitch*2.5, -2])
-            cylinder(h=thickness + 4, d=tag_anchor_diameter);
-            */
     }
 }
 
@@ -326,81 +295,6 @@ module m2_tower_right() {
     }
 }
 
-module screwdriver_hook() {
-    hook_height=7;
-    screwdriver_hole=4;
-    screwdriver_cleareance=2;
-    difference() {
-        translate([0, 12.5+hook_height/2, thickness/2+(hook_height/2)])
-        cube([10, hook_height, hook_height], center=true);
-        translate([0, 12.5+screwdriver_hole/2, thickness/2+(hook_height/2)])
-        //cube([screwdriver_hole*2, screwdriver_hole*2, screwdriver_hole], center=true);
-        rotate([90,0,0])
-        cylinder(h=hook_height-2, d=screwdriver_hole);
-    }
-}
-
-module screwdriver_hook_simple(
-  hook_x = 10,       // X size of the tower
-  hook_y = 7,        // Y size of the tower
-  hook_z = 15-thickness,        // Z size of the tower (taller = stronger)
-  /*
-    h parte alta 14041 18mm
-    h parte bassa 14041 9.2mm
-  */
-  y0 = 12.5,
-  z0 = thickness/2,
-
-  // Slot for flat screwdriver / test pen
-  slot_w = 3.2,      // X width (blade width + clearance)
-  slot_h = 2.0,      // Z height (blade thickness + clearance)
-  slot_depth = 4.5,  // Y depth INTO the tower (must be <= hook_y)
-
-  // Slot vertical position from bottom of tower
-  slot_cz = 5.0,     // mm from bottom of tower (set so roof stays thick)
-
-  // Optional mouth (funnel) on Y- face, biased to X-
-  mouth = true,
-  mouth_depth = 2.0, // Y length of the mouth (<= slot_depth)
-  mouth_w_neg = 6.5, // opening on X- (bigger)
-  mouth_w_pos = 4.0, // opening on X+ (smaller)
-  mouth_h = 3.0      // opening height in Z (>= slot_h)
-) {
-  // Place tower like your original: centered in X, at y0..y0+hook_y, on top of base
-  // Tower center:
-  cx = 0;
-  cy = y0 + hook_y/2;
-  cz = z0 + hook_z/2;
-
-  translate([cx, cy, cz])
-  difference() {
-    // Tower body
-    cube([hook_x, hook_y, hook_z], center=true);
-
-    // --- SLOT: open ONLY on Y- face, and goes INSIDE by slot_depth ---
-    // This cannot exit on Y+ as long as slot_depth <= hook_y.
-    translate([
-      0,
-      -hook_y/2 - 0.01,                 // start at Y- face
-      -hook_z/2 + slot_cz               // slot center Z (from bottom)
-    ])
-      cube([slot_w, slot_depth + 0.02, slot_h], center=false);
-
-    // --- MOUTH: simple asymmetric wedge on the entrance (Y-) ---
-    if (mouth) {
-      translate([0, -hook_y/2 - 0.01, -hook_z/2 + slot_cz - mouth_h/2])
-        rotate([90,0,0]) // extrude along +Y
-          linear_extrude(height=mouth_depth, center=false, convexity=10)
-            polygon(points=[
-              [-mouth_w_neg/2, 0],
-              [ mouth_w_pos/2, 0],
-              [ slot_w/2,      mouth_h],
-              [-slot_w/2,      mouth_h]
-            ]);
-    }
-  }
-}
-
 
 // Final assembly
 union() {
@@ -408,6 +302,4 @@ union() {
     tower();
     m2_tower_left();
     m2_tower_right();
-//    screwdriver_hook();
-    //screwdriver_hook_simple();
 }
