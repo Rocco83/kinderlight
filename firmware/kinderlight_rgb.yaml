@@ -6,8 +6,9 @@ esphome:
 
 esp32:
   board: esp32-c6-devkitm-1
-  #framework:
+  framework:
   #  type: arduino
+    type: esp-idf
 
 # Enable logging via UART
 logger:
@@ -95,6 +96,10 @@ sensor:
     #update_interval: 10s
     update_interval: 1s
     entity_category: "diagnostic"
+    # needed to correct the lux in the room with the reading - eg filters in front of
+    filters:
+      # calculate the value - eg using a lux meter - and adapt the value read with the real one
+      - multiply: 1.0
 
 # PWM outputs for RGB LED
 output:
@@ -151,8 +156,10 @@ number:
     name: "Set Red %"
     min_value: 0
     max_value: 100
+    initial_value: 100 # default on first boot
     step: 1
     optimistic: true
+    mode: BOX # show a textbox, not a slider
     on_value:
       then:
         - light.turn_on:
@@ -167,8 +174,10 @@ number:
     name: "Set Green %"
     min_value: 0
     max_value: 100
+    initial_value: 100 # default on first boot
     step: 1
     optimistic: true
+    mode: BOX # show a textbox, not a slider
     on_value:
       then:
         - light.turn_on:
@@ -181,8 +190,10 @@ number:
     name: "Set Blue %"
     min_value: 0
     max_value: 100
+    initial_value: 100 # default on first boot
     step: 1
     optimistic: true
+    mode: BOX # show a textbox, not a slider
     on_value:
       then:
         - light.turn_on:
@@ -191,29 +202,56 @@ number:
             red: !lambda 'return id(kinderlight_rgb_light).remote_values.get_red();'
             green: !lambda 'return id(kinderlight_rgb_light).remote_values.get_green();'
 
-#number:
   - platform: template
     name: "Darkness Threshold"
     id: dark_threshold
     optimistic: true
     restore_value: true         # save in flash and restore on reboot
     min_value: 0
-    max_value: 100
+    max_value: 50 # max value for the slider
+    step: 0.1
+    unit_of_measurement: "lx"
+    initial_value: 20           # default on first boot
+    #mode: BOX # show a textbox, not a slider
+
+  - platform: template
+    name: "Darkness Offset"
+    id: darkness_offset
+    icon: "mdi:minus-circle-outline"
+    optimistic: true
+    restore_value: true          # Save value on reboot
+    min_value: 0
+    max_value: 10
     step: 1
     unit_of_measurement: "lx"
-    initial_value: 50           # default on first boot
+    initial_value: 4             # Default value measured
 
 # Binary sensor to detect darkness
 binary_sensor:
   - platform: template
     name: "KinderLight Is Dark"
     id: is_dark
-    lambda: |-
-      // compare measured lux to the user-set threshold
-      // lower = true, higher = false
-      return id(ambient_light).state < id(dark_threshold).state;
     device_class: light
+    lambda: |-
+      // 1. Read current values
+      float current_lux = id(ambient_light).state;
+      float threshold = id(dark_threshold).state;
+      float offset = id(darkness_offset).state;
 
+      // 2. DEFINE YOUR CONDITION HERE
+      // Example: Check if the main RGB light is currently ON
+      // You can replace this with any other condition (e.g., time of day, another switch)
+      bool condition_active = id(kinderlight_rgb_light).current_values.is_on();
+
+      // 3. Apply reduction (offset) if the condition is true
+      // This lowers the threshold, meaning it must be darker to trigger "true"
+      if (condition_active) {
+        threshold = threshold - offset;
+      }
+
+      // 4. Final comparison
+      // Returns true (dark) if current lux is below the calculated threshold
+      return current_lux < threshold;
 
 interval:
   - interval: 5s
@@ -279,6 +317,17 @@ text_sensor:
       name: "KinderLight IP Address"
     mac_address:
       name: "KinderLight MAC Address"
+  - platform: template
+    name: "KinderLight Hostname"
+    id: kl_hostname_ts
+    icon: mdi:network
+    entity_category: "diagnostic"
+    update_interval: 60s
+    # framework esp-idf dependant
+    lambda: |-
+      const char *hostname;
+      esp_netif_get_hostname(esp_netif_get_handle_from_ifkey("WIFI_STA_DEF"), &hostname);
+      return std::string(hostname);
 
   - platform: template
     name: "RGB Light Debug"
