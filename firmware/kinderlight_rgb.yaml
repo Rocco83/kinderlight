@@ -3,6 +3,30 @@ esphome:
   name: kinderlight-rgb
   friendly_name: KinderLight-RGB
   name_add_mac_suffix: true
+  on_boot:
+    priority: 600 # Run after sensors are initialized
+    then:
+      - lambda: |-
+          // Restore the curve from Flash string to RAM vector
+          std::string s = id(calib_storage);
+          std::string delimiter = ",";
+          size_t pos = 0;
+          std::string token;
+          int i = 0;
+          
+          ESP_LOGI("storage", "Restoring calibration curve: %s", s.c_str());
+
+          // Parse CSV string
+          while ((pos = s.find(delimiter)) != std::string::npos && i < 11) {
+              token = s.substr(0, pos);
+              id(calib_curve)[i] = strtof(token.c_str(), NULL);
+              s.erase(0, pos + delimiter.length());
+              i++;
+          }
+          // Handle the last value
+          if (i < 11) {
+             id(calib_curve)[i] = strtof(s.c_str(), NULL);
+          }
 
 esp32:
   board: esp32-c6-devkitm-1
@@ -48,6 +72,94 @@ i2c:
   #scan: true #
   id: i2c_bus_a
 
+globals:
+  # Working vector (RAM) - stores the offsets: 0%, 10%, ... 100%
+  # Initialized with your measured deltas (Measured - 0.1 lux baseline)
+  - id: calib_curve
+    type: std::vector<float>
+    initial_value: '{0.0, 0.0, 0.4, 1.0, 2.4, 4.7, 7.6, 11.8, 17.3, 23.9, 31.8}'
+
+  # Persistent storage (Flash) - saves curve as CSV string
+  - id: calib_storage
+    type: std::string
+    restore_value: true
+    initial_value: '"0.0,0.0,0.4,1.0,2.4,4.7,7.6,11.8,17.3,23.9,31.8"'
+
+  # Helper iterator for the calibration loop
+  - id: calib_iterator
+    type: int
+    initial_value: '0'
+
+script:
+  - id: run_dynamic_calibration
+    then:
+      - logger.log: "Starting Dynamic Calibration (11 steps)..."
+      
+      # Reset iterator and turn off light
+      - globals.set:
+          id: calib_iterator
+          value: '0'
+      - light.turn_off: kinderlight_rgb_light
+      - delay: 3s
+      
+      # Measure Baseline (0%)
+      - lambda: |-
+          // Store baseline (ambient light)
+          // We temporarily store the raw value in index 0
+          float val = id(ambient_light).state;
+          id(calib_curve)[0] = val;
+          ESP_LOGI("calib", "Baseline: %.1f lx", val);
+
+      # Loop steps 1 to 10 (10% - 100%)
+      - repeat:
+          count: 10
+          then:
+            - lambda: 'id(calib_iterator) += 1;'
+            
+            # Set brightness
+            - light.turn_on:
+                id: kinderlight_rgb_light
+                brightness: !lambda 'return id(calib_iterator) / 10.0;'
+                red: 100%
+                green: 100%
+                blue: 100%
+                transition_length: 1s
+            
+            - delay: 3s # Wait for sensor
+            
+            # Measure and calculate Delta
+            - lambda: |-
+                int i = id(calib_iterator);
+                float current_lux = id(ambient_light).state;
+                float baseline = id(calib_curve)[0]; // Retrieve raw baseline
+                
+                // Calculate how much light the lamp is adding
+                float delta = current_lux - baseline;
+                if (delta < 0) delta = 0;
+                
+                if (i < 11) {
+                  id(calib_curve)[i] = delta;
+                  ESP_LOGI("calib", "Step %d: Delta %.1f", i, delta);
+                }
+
+      # Finish: Reset index 0 to 0.0 (baseline offset is always 0)
+      - lambda: 'id(calib_curve)[0] = 0.0;'
+      
+      # Turn off light
+      - light.turn_off: kinderlight_rgb_light
+      
+      # Serialize to CSV String and Save to Flash
+      - lambda: |-
+          std::string s = "";
+          char buffer[10];
+          for (int i = 0; i < 11; i++) {
+             sprintf(buffer, "%.1f", id(calib_curve)[i]);
+             s += buffer;
+             if (i < 10) s += ",";
+          }
+          id(calib_storage) = s;
+          ESP_LOGI("storage", "Saved to flash: %s", s.c_str());
+
 button:
   - platform: template
     name: "Clear Stored States"
@@ -62,6 +174,12 @@ button:
         - delay: 1s
         # This is the correct way to reboot via code
         - lambda: 'App.safe_reboot();'
+
+  - platform: template
+    name: "Run Calibration (Dark Room)"
+    icon: "mdi:chart-bell-curve-cumulative"
+    on_press:
+      - script.execute: run_dynamic_calibration
 
 sensor:
   - platform: wifi_signal
@@ -214,17 +332,30 @@ number:
     initial_value: 20           # default on first boot
     #mode: BOX # show a textbox, not a slider
 
+#  - platform: template
+#    name: "Darkness Offset"
+#    id: darkness_offset
+#    icon: "mdi:minus-circle-outline"
+#    optimistic: true
+#    restore_value: true          # Save value on reboot
+#    min_value: 0
+#    max_value: 10
+#    step: 1
+#    unit_of_measurement: "lx"
+#    initial_value: 4             # Default value measured
+
   - platform: template
-    name: "Darkness Offset"
-    id: darkness_offset
-    icon: "mdi:minus-circle-outline"
+    name: "Calibrated Self-Interference"
+    id: calibrated_interference
+    icon: "mdi:white-balance-sunny"
     optimistic: true
-    restore_value: true          # Save value on reboot
+    restore_value: true           # Save to flash
     min_value: 0
-    max_value: 10
-    step: 1
+    max_value: 500
+    step: 0.1
     unit_of_measurement: "lx"
-    initial_value: 4             # Default value measured
+    initial_value: 0              # Default 0 (no interference)
+    mode: BOX                     # Text box input instead of slider (optional)
 
 # Binary sensor to detect darkness
 binary_sensor:
@@ -233,25 +364,42 @@ binary_sensor:
     id: is_dark
     device_class: light
     lambda: |-
-      // 1. Read current values
       float current_lux = id(ambient_light).state;
       float threshold = id(dark_threshold).state;
-      float offset = id(darkness_offset).state;
+      float offset = 0.0;
 
-      // 2. DEFINE YOUR CONDITION HERE
-      // Example: Check if the main RGB light is currently ON
-      // You can replace this with any other condition (e.g., time of day, another switch)
-      bool condition_active = id(kinderlight_rgb_light).current_values.is_on();
+      // Only calculate offset if light is ON
+      if (id(kinderlight_rgb_light).current_values.is_on()) {
+        
+        // 1. Get brightness (0.0 to 1.0)
+        float bri = id(kinderlight_rgb_light).current_values.get_brightness();
+        
+        // 2. Scale to array index space (0 to 10)
+        float scaled = bri * 10.0;
+        
+        // 3. Find lower integer index
+        int idx = (int)scaled;
+        
+        // Safety check
+        if (idx >= 10) idx = 9;
+        
+        // 4. Calculate fractional part for interpolation
+        float frac = scaled - (float)idx;
 
-      // 3. Apply reduction (offset) if the condition is true
-      // This lowers the threshold, meaning it must be darker to trigger "true"
-      if (condition_active) {
-        threshold = threshold - offset;
+        // 5. Retrieve values from vector
+        float val_low = id(calib_curve)[idx];
+        float val_high = id(calib_curve)[idx+1];
+
+        // 6. Linear Interpolation
+        offset = val_low + (val_high - val_low) * frac;
       }
 
-      // 4. Final comparison
-      // Returns true (dark) if current lux is below the calculated threshold
-      return current_lux < threshold;
+      // Calculate Real Ambient (Raw - Offset)
+      float real_ambient = current_lux - offset;
+      if (real_ambient < 0) real_ambient = 0;
+
+      // Compare
+      return real_ambient < threshold;
 
 interval:
   - interval: 5s
@@ -357,9 +505,39 @@ text_sensor:
       float b_pwm = b_color * bri;
 
       // 4. Format into a readable string
-      sprintf(buffer, "State: %s | Bri: %.0f%% | PWM-> R:%.0f%% G:%.0f%% B:%.0f%%", 
+      sprintf(buffer, "State: %s | Bri: %.0f%% | PWM-> R:%.0f%% G:%.0f%% B:%.0f%%",
               state.c_str(), (bri * 100.0), (r_pwm * 100.0), (g_pwm * 100.0), (b_pwm * 100.0));
 
+      return {buffer};
+
+  # LIVE CALCULATION DEBUG
+  - platform: template
+    name: "KinderLight Live Calc"
+    icon: "mdi:calculator-variant"
+    entity_category: "diagnostic"
+    update_interval: 2s
+    lambda: |-
+      char buffer[100];
+      float raw = id(ambient_light).state;
+      float offset = 0.0;
+      
+      // Duplicate logic for display purposes
+      if (id(kinderlight_rgb_light).current_values.is_on()) {
+          float bri = id(kinderlight_rgb_light).current_values.get_brightness();
+          float scaled = bri * 10.0;
+          int idx = (int)scaled;
+          if (idx >= 10) idx = 9;
+          float frac = scaled - (float)idx;
+          float v1 = id(calib_curve)[idx];
+          float v2 = id(calib_curve)[idx+1];
+          offset = v1 + (v2 - v1) * frac;
+      }
+
+      float real = raw - offset;
+      if (real < 0) real = 0;
+
+      // Output string: Raw Lux | Calculated Offset | Resulting "Real" Lux
+      sprintf(buffer, "Raw: %.1f | Off: -%.1f | Real: %.1f", raw, offset, real);
       return {buffer};
 
 time:
