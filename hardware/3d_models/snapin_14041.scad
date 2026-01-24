@@ -27,13 +27,14 @@ slot_length = 9.5;                                // "y" (lunghezza del taglio l
 // -----------------------------------------------------------------------------
 // LED and Sensor positions
 // -----------------------------------------------------------------------------
-led_pos_y = -15;
+led_pos_y = -14;
+led_walls_tickness = 2;
 // led diameter: 5mm (si incastra bene)
 // led back diameter (che non esce): 5,5mm
 
 hole_diameter_led_pass = 6.50; // Foro dove passa la testa del porta LED
-hole_diameter_led_seat = 7.10; // Foro per la base/corpo del porta LED 
-flange_thickness       = 1;    // Spessore della flangia per NON fare passare il led
+hole_diameter_led_seat = 7.30; // Foro per la base/corpo del porta LED +0.2mm
+flange_thickness       = 2;    // Spessore della flangia per NON fare passare il led + 1mm
 gommino_clearance      = 0;    // 14041 have exactly 2mm spessore
 
 // Sensor hole
@@ -68,6 +69,9 @@ module snapin_plate() {
             // cubo di rinforzo
             translate([0, sensor_pos_y, thickness / 2])
                 cube([14, tower_outer_diameter, tower_height * 2], center = true);
+            // cilindro per non far fare troppa luminosita' al led
+            translate([0, led_pos_y, thickness / 2])
+                cylinder(h = tower_height, d = hole_diameter_led_seat+(led_walls_tickness*2));
         }
 
         // --- SISTEMA FORO LED CON FLANGIA ---
@@ -151,7 +155,7 @@ module scasso_cavi_sensore() {
     cone_groove_width          = 2;   // la parte del gommino che deve passare
     cone_groove_inner_diameter = 7.5; // gommino 7.00, tieni del margine 
     cone_groove_outer_diameter = 9;   // parte esterna gommino
-    cone_top_width             = 3;   // altezza dopo groove fino a top
+    cone_top_width             = 3.5;   // altezza dopo groove fino a top
 
     // #1 2mm dritto dalla base (base_cone)
     translate([0, sensor_pos_y, z0cone])
