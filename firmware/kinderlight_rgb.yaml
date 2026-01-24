@@ -217,7 +217,7 @@ button:
 
   - platform: template
     name: "Run Calibration (Dark Room)"
-    icon: "mdi:chart-bell-curve-cumulative"
+    icon: "mdi:magic-staff"
     entity_category: "config"
     on_press:
       - script.execute:
@@ -251,6 +251,7 @@ sensor:
   - platform: template
     name: "KinderLight Real Lux"
     id: real_lux_sensor
+    icon: "mdi:brightness-5"
     unit_of_measurement: "lx"
     device_class: illuminance
     accuracy_decimals: 1
@@ -352,7 +353,7 @@ light:
     num_leds: 1
     chipset: WS2812
     id: status_led
-    name: "Embedded RGB Light"
+    name: "Embedded RGB"
     icon: "mdi:led-outline"
     default_transition_length: 0.25s
     effects:
@@ -362,7 +363,8 @@ light:
 
 number:
   - platform: template
-    name: "Set Red %"
+    name: "KinderLight Set Red %"
+    icon: "mdi:alpha-r-circle-outline"
     min_value: 0
     max_value: 100
     initial_value: 100 # default on first boot
@@ -380,7 +382,8 @@ number:
             blue: !lambda 'return id(kinderlight_rgb_light).remote_values.get_blue();'
 
   - platform: template
-    name: "Set Green %"
+    name: "KinderLight Set Green %"
+    icon: "mdi:alpha-g-circle-outline"
     min_value: 0
     max_value: 100
     initial_value: 100 # default on first boot
@@ -396,7 +399,8 @@ number:
             blue: !lambda 'return id(kinderlight_rgb_light).remote_values.get_blue();'
 
   - platform: template
-    name: "Set Blue %"
+    name: "KinderLight Set Blue %"
+    icon: "mdi:alpha-b-circle-outline"
     min_value: 0
     max_value: 100
     initial_value: 100 # default on first boot
@@ -414,6 +418,7 @@ number:
   - platform: template
     name: "Darkness Threshold"
     id: dark_threshold
+    icon: "mdi:brightness-6"
     optimistic: true
     restore_value: true         # save in flash and restore on reboot
     min_value: 0
@@ -428,6 +433,8 @@ binary_sensor:
   - platform: template
     name: "KinderLight Is Dark"
     id: is_dark
+    icon: "mdi:weather-night"
+    entity_category: "diagnostic"
     device_class: light
     lambda: |-
       // Compare the calculated REAL lux with the threshold
@@ -476,6 +483,7 @@ switch:
   - platform: template
     name: "KinderLight Manual Override"
     id: manual_override
+    icon: "mdi:hand-back-left-outline"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
 
