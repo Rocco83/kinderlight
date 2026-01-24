@@ -45,7 +45,6 @@ sensor_pos_y = 4; // measured, posizione del *sensore* rispetto ad y=0
 tower_height           = 3; // 1mm si intravede il foro. 2mm/3mm OK
 tower_outer_diameter   = 9; // diametro massimo altrimenti tocca gli altri componenti
 tower_inner_diameter   = 7; // which is also sensor diameter
-tower_gommino_diameter = tower_inner_diameter + 2;
 
 // -----------------------------------------------------------------------------
 // Mini-towers M2 screws
