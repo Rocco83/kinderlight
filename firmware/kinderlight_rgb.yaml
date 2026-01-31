@@ -110,7 +110,7 @@ script:
           id: calib_iterator
           value: '0'
       - light.turn_off: kinderlight_rgb_light
-      - delay: 3s
+      - delay: 5s
 
       # Measure Baseline (0%)
       - lambda: |-
@@ -246,7 +246,9 @@ sensor:
     # needed to correct the lux in the room with the reading - eg filters in front of
     filters:
       # calculate the value - eg using a lux meter - and adapt the value read with the real one
-      - multiply: 1.0
+      # Multiply the raw reading by the user-defined correction factor
+      - lambda: |-
+          return x * id(lux_correction).state;
 
   - platform: template
     name: "KinderLight Real Lux"
@@ -428,6 +430,26 @@ number:
     initial_value: 20           # default on first boot
     #mode: BOX # show a textbox, not a slider
 
+  - platform: template
+    name: "Lux Correction Factor"
+    id: lux_correction
+    icon: "mdi:format-annotation-multiply"
+    entity_category: "config"
+    optimistic: true
+    restore_value: true          # Save value to flash on reboot
+    min_value: 0.1
+    max_value: 5.0
+    step: 0.1
+    initial_value: 2.0           # Default: No change
+    mode: BOX                    # BOX is better for precise typing, remove for Slider
+    # Trigger a warning in the logs when the value is changed
+    on_value:
+      then:
+        - logger.log:
+            level: WARN
+            format: "Lux Correction changed to %.1f. It is MANDATORY to run calibration now!"
+            args: ['x']
+
 # Binary sensor to detect darkness
 binary_sensor:
   - platform: template
@@ -563,6 +585,32 @@ text_sensor:
 
       sprintf(buffer, "Raw: %.1f | Off: -%.1f | Real: %.1f", raw, offset, real);
       return {buffer};
+
+  - platform: template
+    name: "KinderLight Calibration Map"
+    id: calib_map_display
+    icon: "mdi:chart-line"
+    entity_category: "diagnostic"
+    # Update occasionally, the curve changes only after calibration
+    update_interval: 10s
+    lambda: |-
+      std::string result = "";
+      char buffer[32];
+
+      // Loop through the 11 steps (0 to 10)
+      for (int i = 0; i <= 10; i++) {
+        int percent = i * 10;
+        float offset = id(calib_curve)[i];
+
+        // Format: "20%->1.5"
+        // We use a pipe " | " to separate values for readability
+        if (i > 0) result += " | ";
+
+        sprintf(buffer, "%d%%->%.1f", percent, offset);
+        result += buffer;
+      }
+
+      return {result};
 
 time:
   - platform: sntp
