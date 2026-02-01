@@ -9,8 +9,12 @@ $fn = 200; // Smooth curves
 // -----------------------------------------------------------------------------
 // WARNING: PLANA 14041 changed over the time. ensure to have "new" modules
 
-width     = 19.27; // calibro 19,26 (loose) 19,51 (forcing the plastic) - lato non deve premere
-height    = 40.58; // calibro 40,54 (loose) 40,78 (forcing the plastic)
+width     = 19.40; // calibro 19,26 (loose) 19,51 (forcing the plastic) - lato non deve premere.
+// con 19.26 reali ha ancora agio ma sta bloccato bene
+// con 19.27 stampa 19.15
+height    = 40.70; // calibro 40,54 (loose) 40,78 (forcing the plastic)
+// con 40.58 reali ha ancora agio ma sta bloccato bene
+// con 40.58 stampa 40.43
 thickness = 3;
 
 abbondanza = 4;
@@ -18,7 +22,9 @@ abbondanza = 4;
 // -----------------------------------------------------------------------------
 // Cut of the upper and lower part
 // -----------------------------------------------------------------------------
-central_module_width = 12.5;
+central_module_width = 12.60; // calibro 12.36 in fondo. 12.42 reali ha ancora agio
+// con 12.47 reali ha ancora agio ma sta bloccato bene
+// con 12.50 stampa 12.39
 
 // 19.3-(3.4*2)=12.5 al contrario: (19.3-central_module_width)/2
 slot_depth  = (width - central_module_width) / 2; // "x" (quanto entra verso il centro)
@@ -32,9 +38,11 @@ led_walls_tickness = 2;
 // led diameter: 5mm (si incastra bene)
 // led back diameter (che non esce): 5,5mm
 
-hole_diameter_led_pass = 6.50; // Foro dove passa la testa del porta LED
+hole_diameter_led_pass = 6.55; // Foro dove passa la testa del porta LED
 hole_diameter_led_seat = 7.30; // Foro per la base/corpo del porta LED +0.2mm
+hole_diameter_led_remove = hole_diameter_led_seat+0.5; // Foro dove passa la testa del porta LED
 flange_thickness       = 2;    // Spessore della flangia per NON fare passare il led + 1mm
+flange_top_led_remove  = 1.5;
 gommino_clearance      = 0;    // 14041 have exactly 2mm spessore
 
 // Sensor hole
@@ -71,6 +79,7 @@ module snapin_plate() {
                 cube([14, tower_outer_diameter, tower_height * 2], center = true);
             // cilindro per non far fare troppa luminosita' al led
             translate([0, led_pos_y, thickness / 2])
+                // il cilindro è alto come la torre per sicurezza
                 cylinder(h = tower_height, d = hole_diameter_led_seat+(led_walls_tickness*2));
         }
 
@@ -80,8 +89,13 @@ module snapin_plate() {
             cylinder(h = thickness + abbondanza, d = hole_diameter_led_pass, center = true);
 
         // 2. Scasso per il corpo del LED
+        // la flangia deve avere 2 diametri per permettere l'inserimento del led
         translate([0, led_pos_y, -thickness / 2 + flange_thickness])
             cylinder(h = thickness + abbondanza, d = hole_diameter_led_seat);
+        // la parte in alto deve avere un minimo di scasso per permettere l'inserimento e l'estrazione del led
+        translate([0, led_pos_y, (thickness / 2) + tower_height - flange_top_led_remove])
+            cylinder(h = thickness + abbondanza, d = hole_diameter_led_remove);
+
 
         // Sensor hole
         scasso_cavi_sensore();
