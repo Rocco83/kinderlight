@@ -41,6 +41,16 @@ Designed to integrate natively with **Home Assistant** via **ESPHome**.
 3. Wire the RGB LED and the BH1750 sensor
 4. Upload automations to Home Assistant.
 
+## Configuration
+
+Lux table:
+0.0 - 2.0 lx: Danger Zone (High risk of tripping/hitting furniture).
+2.0 - 5.0 lx: Deep Twilight (Silhouettes only; no colors or textures visible).
+5.0 - 10.0 lx: Twilight (General shapes visible; fine details are lost).
+10.0 - 15.0 lx: Low Orientation (Safe to move; colors begin to be distinguishable).
+15.0 - 20.0 lx: Dim Orientation (Comfortable for a nightlight; eye starts to adapt).
+20.0 - 30.0 lx: Gloomy Interior (Environment feels "dark" but fully visible).
+
 ## Entities Created
 
 - `light.kinderlight_rgb`
