@@ -109,7 +109,11 @@ script:
       - globals.set:
           id: calib_iterator
           value: '0'
+      # ensure that override is ON
+      - switch.turn_on: manual_override
+      # turn off the light
       - light.turn_off: kinderlight_rgb_light
+      # wait before starting to reduce the light
       - delay: 5s
 
       # Measure Baseline (0%)
@@ -135,7 +139,7 @@ script:
                 blue: 100%
                 transition_length: 1s
 
-            - delay: 3s # Wait for sensor
+            - delay: 5s # Wait for sensor
 
             # Measure and calculate Delta
             - lambda: |-
@@ -339,6 +343,7 @@ light:
     id: kinderlight_rgb_light
     initial_state: # This state will be applied when the state is not restored based on restore_mode (below).
       state: on
+      brightness: 50%
     restore_mode: RESTORE_DEFAULT_OFF
     default_transition_length: 1s
     effects:
