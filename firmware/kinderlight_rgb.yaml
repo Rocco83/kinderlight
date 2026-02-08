@@ -205,6 +205,9 @@ script:
       - logger.log: "Calibration Complete. State and Data restored."
 
 button:
+  - platform: restart
+    name: "ESPHome Restart"
+    entity_category: "config"
   - platform: template
     name: "Clear Stored States"
     id: clear_states_button
