@@ -23,6 +23,19 @@ ehthumbs.db
 *-bak.kicad_pcb
 *-bak.kicad_sch
 
+# KiCad project auto-save
+*.kicad_pro-bak
+\#auto_saved_files\#
+
+# KiCad auto-save and backup files
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.bak
+*.bck
+*-bak/
+*_bak/
+*-backups/
+
 # Output
 /gerbers_front/
 /gerbers_rear/
@@ -30,9 +43,14 @@ ehthumbs.db
 /dist/
 
 # Other temporary files
-*.zip
 *.tar.gz
 *.7z
+
+# KiCad lock files (created when project is open)
+*.lck
+
+# KiCad cache
+fp-info-cache
 
 # standard files to not version
 *.log
