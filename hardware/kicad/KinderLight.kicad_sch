@@ -1455,10 +1455,10 @@
 		(uuid "15384fa9-64ba-42fb-9d0b-a3b65f1bdd88")
 	)
 	(junction
-		(at 124.46 120.65)
+		(at 124.46 123.19)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "1611f1ce-bb0a-4572-830f-f44502bf8aae")
+		(uuid "1e512e4c-3d33-4846-bf17-76d4802b4fee")
 	)
 	(junction
 		(at 45.72 34.29)
@@ -1485,10 +1485,28 @@
 		(uuid "4818d033-95b3-45a9-8500-24f112bd5445")
 	)
 	(junction
+		(at 124.46 120.65)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4a06394e-8316-4cbd-b4a7-9fd91d23975b")
+	)
+	(junction
+		(at 124.46 115.57)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5049c20e-7564-4e90-8ff4-4b85b54b9956")
+	)
+	(junction
 		(at 46.99 36.83)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "610ee9d9-41cd-4330-b8e9-51e0be5f7d39")
+	)
+	(junction
+		(at 124.46 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "659624fe-3310-4957-b277-4650de2db3d5")
 	)
 	(junction
 		(at 119.38 38.1)
@@ -1527,34 +1545,16 @@
 		(uuid "b3e8f575-34d4-48a2-8c0f-260faac27161")
 	)
 	(junction
-		(at 124.46 118.11)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b6800f71-3940-48e3-a7f4-d0296092324d")
-	)
-	(junction
 		(at 46.99 29.21)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "bbc8599e-5164-4d32-9521-7e38ccc085eb")
 	)
 	(junction
-		(at 124.46 115.57)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "c4712b38-ae0d-4056-8623-df183b111df0")
-	)
-	(junction
 		(at 127 48.26)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cec90b8f-f925-48e0-9c84-d8f7bc2b6c77")
-	)
-	(junction
-		(at 124.46 123.19)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "d46ebfa9-7c25-4e18-beff-5653e09bc609")
 	)
 	(junction
 		(at 125.73 52.07)
@@ -1786,6 +1786,16 @@
 	)
 	(wire
 		(pts
+			(xy 124.46 123.19) (xy 153.67 123.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2d176cca-bbef-44d6-ac18-e15d781cf7fc")
+	)
+	(wire
+		(pts
 			(xy 113.03 99.06) (xy 113.03 127)
 		)
 		(stroke
@@ -1833,16 +1843,6 @@
 			(type default)
 		)
 		(uuid "3ad099e1-3ade-4229-9746-a3ff38d2500e")
-	)
-	(wire
-		(pts
-			(xy 124.46 118.11) (xy 153.67 118.11)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3ad8d065-7e90-4704-a2c4-0f937c934b6e")
 	)
 	(wire
 		(pts
@@ -1993,16 +1993,6 @@
 			(type default)
 		)
 		(uuid "60d189ed-40e3-4669-acd0-5235917c7e4a")
-	)
-	(wire
-		(pts
-			(xy 124.46 115.57) (xy 153.67 115.57)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6b0a851c-b111-4b24-a975-fa87b2d19875")
 	)
 	(wire
 		(pts
@@ -2186,16 +2176,6 @@
 	)
 	(wire
 		(pts
-			(xy 124.46 123.19) (xy 153.67 123.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "93e84211-6fb2-46a2-a6d1-fc7d94f52a79")
-	)
-	(wire
-		(pts
 			(xy 66.04 44.45) (xy 66.04 76.2)
 		)
 		(stroke
@@ -2223,6 +2203,16 @@
 			(type default)
 		)
 		(uuid "a1ae73fa-4f3d-4e03-86ba-fe31eb50dc3b")
+	)
+	(wire
+		(pts
+			(xy 124.46 120.65) (xy 153.67 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a22dfb3e-2093-4409-bfd9-69c5f0ef62d5")
 	)
 	(wire
 		(pts
@@ -2336,6 +2326,16 @@
 	)
 	(wire
 		(pts
+			(xy 124.46 118.11) (xy 153.67 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4795dd3-fb0a-488c-95d4-f21e309d2111")
+	)
+	(wire
+		(pts
 			(xy 81.28 25.4) (xy 81.28 35.56)
 		)
 		(stroke
@@ -2383,16 +2383,6 @@
 			(type default)
 		)
 		(uuid "c10d45e3-c9db-43b6-a1b1-dc392348f432")
-	)
-	(wire
-		(pts
-			(xy 124.46 120.65) (xy 153.67 120.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c1cfcc8c-728b-401e-b9bc-8b688cb749ee")
 	)
 	(wire
 		(pts
@@ -2533,6 +2523,16 @@
 			(type default)
 		)
 		(uuid "f64fd73b-2c6e-4d36-85cf-c5b4ffb9acff")
+	)
+	(wire
+		(pts
+			(xy 124.46 115.57) (xy 153.67 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f6a35bf6-cd1b-4479-b145-fa6b5dc593c7")
 	)
 	(wire
 		(pts
@@ -2956,7 +2956,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical"
 			(at 129.54 118.11 0)
 			(effects
 				(font
@@ -4548,7 +4548,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "I2C BH1750"
+		(property "Value" "I2C BH1750 XH"
 			(at 54.61 34.2899 0)
 			(effects
 				(font
@@ -4557,7 +4557,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical"
 			(at 52.07 31.75 0)
 			(effects
 				(font
