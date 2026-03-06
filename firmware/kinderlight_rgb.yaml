@@ -58,6 +58,9 @@ wifi:
     password: !secret wifi_1_password
   - ssid: !secret wifi_2_ssid
     password: !secret wifi_2_password
+  #output_power: 17dB          # Default TX power, increased dynamically if needed
+  post_connect_roaming: true  # Scan for better AP after connection
+  #reboot_timeout: 90s         # Reboot if unable to connect within 90 seconds
 
 # Web server for local diagnostics
 web_server:
@@ -296,7 +299,7 @@ sensor:
       return real_ambient;
 
   - platform: wifi_signal
-    name: "WiFi Signal dB"
+    name: "WiFi Signal dB (RSSI)"
     id: wifi_signal_db
     update_interval: 60s # Check every minute
     entity_category: "diagnostic"
@@ -306,13 +309,16 @@ sensor:
           send_every: 1
     on_value:
       then:
+        - logger.log:
+            format: "WiFi Signal (RSSI) current value: %.1f dBm"  # Log current RSSI reading
+            args: [ 'x' ]
         - if:
             condition:
               and:
                 - wifi.connected:
-                - lambda: 'return x < -80;' # Trigger if signal is worse than -80dB
+                - lambda: 'return x < -90;' # Trigger if signal is worse than -90dB
             then:
-              - logger.log: "WiFi Signal is below -80dB. Forcing scan for better BSSID..."
+              - logger.log: "WiFi Signal (RSSI) is below -90dB. Forcing scan for better BSSID..."
               # There is no "roam" command, so we toggle WiFi to force a new scan/connect
               - wifi.disable:
               - delay: 2s
