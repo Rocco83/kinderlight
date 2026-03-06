@@ -49,8 +49,9 @@ ehthumbs.db
 # KiCad lock files (created when project is open)
 *.lck
 
-# KiCad cache
+# KiCad cache and plugins
 fp-info-cache
+.kicad-push
 
 # standard files to not version
 *.log
