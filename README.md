@@ -94,3 +94,12 @@ kinderlight_rgb/
 └── tools/
     ├── wiring_diagram.svg
     └── wiring_diagram.png
+
+## Backlog
+
+MP1584 dimensions for kicad has been taken from:
+
+https://components101.com/modules/mini-mp1584-dc-dc-3a-adjustable-buck-module
+
+[docs/MP1584-Dimensions.png]
+[docs/MP1584-Pinout.jpg]
