@@ -79,13 +79,19 @@ globals:
   # Initialized with your measured deltas (Measured - 0.1 lux baseline)
   - id: calib_curve
     type: std::vector<float>
-    initial_value: '{0.0, 0.0, 0.4, 1.0, 2.4, 4.7, 7.6, 11.8, 17.3, 23.9, 31.8}'
+    initial_value: '{0.0, 0.0, 0.9, 3.4, 7.5, 14.0, 23.5, 36.7, 52.5, 72.9, 98.2}'
 
   # Persistent storage (Flash) - saves curve as CSV string
   - id: calib_storage
     type: std::string
     restore_value: true
-    initial_value: '"0.0,0.0,0.4,1.0,2.4,4.7,7.6,11.8,17.3,23.9,31.8"'
+    initial_value: '"0.0,0.0,0.9,3.4,7.5,14.0,23.5,36.7,52.5,72.9,98.2"'
+
+  # Timestamp of the calibration
+  - id: last_calib_timestamp
+    type: long
+    restore_value: true
+    initial_value: '0'
 
   # Helper iterator for the calibration loop
   - id: calib_iterator
@@ -176,6 +182,17 @@ script:
           }
           id(calib_storage) = s;
           ESP_LOGI("storage", "Saved to flash: %s", s.c_str());
+
+      # Update the variable to store the calibration time
+      - lambda: |-
+          // Get current time from the 'time' component
+          auto now = id(sntp_time).now();
+          if (now.is_valid()) {
+            id(last_calib_timestamp) = now.timestamp;
+            ESP_LOGI("calib", "Calibration timestamp updated: %ld", now.timestamp);
+          } else {
+            ESP_LOGW("calib", "Time not valid/SNTP not sync, timestamp not updated.");
+          }
 
       # We turn the light ON with the original values to overwrite the
       # "Calibration White" in the internal memory.
@@ -441,9 +458,10 @@ number:
     max_value: 50 # max value for the slider
     step: 0.1
     unit_of_measurement: "lx"
-    initial_value: 20           # default on first boot
+    initial_value: 10           # default on first boot
     #mode: BOX # show a textbox, not a slider
 
+  # This is the correction factor for the external lux vs how many lux are perceived by the light sensor
   - platform: template
     name: "Lux Correction Factor"
     id: lux_correction
@@ -599,6 +617,21 @@ text_sensor:
 
       sprintf(buffer, "Raw: %.1f | Off: -%.1f | Real: %.1f", raw, offset, real);
       return {buffer};
+
+  - platform: template
+    name: "Last Calibration Date"
+    id: last_calib_date
+    icon: "mdi:calendar-clock"
+    entity_category: "diagnostic"
+    # Update occasionally, the curve changes only after calibration
+    update_interval: 10s
+    lambda: |-
+      if (id(last_calib_timestamp) == 0) return {"Never"};
+      time_t t = (time_t)id(last_calib_timestamp);
+      struct tm *tm_info = localtime(&t);
+      char b[32];
+      strftime(b, sizeof(b), "%Y-%m-%d %H:%M:%S", tm_info);
+      return {b};
 
   - platform: template
     name: "KinderLight Calibration Map"
